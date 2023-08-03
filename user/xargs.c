@@ -4,7 +4,7 @@
 #include "kernel/param.h"
 
 int
-read_line(char *buffer, int size)
+readline(char *buffer, int size)
 {
     int i = 0;
     char c;
@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 
     // Collect arguments from standard input
     char buffer[128];
-    while (num_args < MAXARG && read_line(buffer, sizeof(buffer))) {
+    while (num_args < MAXARG && readline(buffer, sizeof(buffer))) {
         if (buffer[0] != '\0') {
 
             // printf("read arg: %s\n", buffer);
