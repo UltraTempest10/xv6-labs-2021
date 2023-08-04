@@ -38,3 +38,5 @@ entry("sleep");
 entry("uptime");
 # add trace system call stub
 entry("trace");
+# add sysinfo system call stub
+entry("sysinfo");

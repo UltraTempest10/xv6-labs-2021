@@ -22,3 +22,5 @@
 #define SYS_close  21
 // add trace system call number
 #define SYS_trace  22
+// add sysinfo system call number
+#define SYS_sysinfo 23

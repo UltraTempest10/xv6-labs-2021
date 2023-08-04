@@ -657,3 +657,16 @@ procdump(void)
     printf("\n");
   }
 }
+
+uint64
+getnproc(void)
+{
+  struct proc *p;
+  uint64 num_of_processes = 0;
+
+  for(p = proc; p < &proc[NPROC]; p++){
+    if(p->state != UNUSED)
+      num_of_processes++;
+  }
+  return num_of_processes;
+}

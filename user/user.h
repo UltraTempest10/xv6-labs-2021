@@ -25,6 +25,9 @@ int sleep(int);
 int uptime(void);
 // add trace system call
 int trace(int);
+// add sysinfo system call
+struct sysinfo;
+int sysinfo(struct sysinfo*);
 
 // ulib.c
 int stat(const char*, struct stat*);
