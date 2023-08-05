@@ -455,3 +455,24 @@ vmprint(pagetable_t pagetable)
     }
   }
 }
+
+int
+pgaccess(pagetable_t pagetable, uint64 va, int n, uint64 ua)
+{
+  if(n < 0 || n > 64)
+    return -1;
+  int count;
+  uint64 p, bitmask;
+  for(p = va, count = 0; count < n; p += PGSIZE, count++) {
+    pte_t *pte = walk(pagetable, p, 0);
+    if(*pte == 0)
+      return -1;
+    if(*pte & PTE_A){
+      bitmask |= 1 << count;
+      *pte &= ~PTE_A; // clear access bit
+    }
+  }
+  if(copyout(pagetable, ua, (char *)&bitmask, sizeof(bitmask)) < 0)
+    return -1;
+  return 0;
+}
