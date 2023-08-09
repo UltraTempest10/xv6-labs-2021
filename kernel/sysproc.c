@@ -68,7 +68,7 @@ sys_sleep(void)
       return -1;
     }
 
-    backtrace(); // add backtrace to see where the sleep is calleds
+    backtrace(); // add backtrace to see where the sleep is called
 
     sleep(&ticks, &tickslock);
   }
