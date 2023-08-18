@@ -5,6 +5,10 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "fs.h"
+#include "sleeplock.h"
+#include "file.h"
+#include "fcntl.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -27,6 +31,47 @@ void
 trapinithart(void)
 {
   w_stvec((uint64)kernelvec);
+}
+
+int
+vmaalloc(uint64 va)
+{
+  struct vma *vma = 0;
+  char *pa;
+  int flags;
+  struct proc *p = myproc();
+
+  for(int i = 0; i < NVMA; i++){
+    if(p->vma[i].addr && va >= p->vma[i].addr && va < p->vma[i].addr + p->vma[i].len){
+      vma = &p->vma[i];
+      break;
+    }
+  }
+  if(vma == 0)
+    return -1;
+
+  if((vma->prot & PROT_WRITE) == 0 || walkaddr(p->pagetable, va) == 0){
+    if((pa = kalloc()) == 0)
+      return -1;
+    memset(pa, 0, PGSIZE);
+    ilock(vma->f->ip);
+    readi(vma->f->ip, 0, (uint64)pa, va - vma->addr + vma->offset, PGSIZE);
+    iunlock(vma->f->ip);
+
+    flags = PTE_U;
+    if(vma->prot & PROT_READ)
+      flags |= PTE_R;
+    if(vma->prot & PROT_WRITE)
+      flags |= PTE_W;
+    if(vma->prot & PROT_EXEC)
+      flags |= PTE_X;
+
+    if(mappages(p->pagetable, va, PGSIZE, (uint64)pa, flags) != 0) {
+      kfree(pa);
+      return -1;
+    }
+  }
+  return 0;
 }
 
 //
@@ -65,6 +110,9 @@ usertrap(void)
     intr_on();
 
     syscall();
+  } else if(r_scause() == 13 || r_scause() == 15){
+    if(vmaalloc(r_stval()) != 0)
+      p->killed = 1;
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
